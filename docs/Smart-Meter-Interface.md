@@ -1943,5 +1943,55 @@ This script gives also the wattage per phase. Make sure to get the PIN from your
 1,770701004c0700ff@1,Current consumption L3,W,Power_curr_p3,0
 1,770701000e0700ff@1,Frequency,Hz,frequency,0
 #
-```
+``------------------------------------------------------------------------------------------------------
 
+### UH50 / UH550 von LandisGyr	(Obis)
+	
+>D
+cntr=0
+>B
+=>sensor53 r  
+>F
+; executed every 100ms
+switch cntr
+case 10
+print set baudrate to 300, send wakeup, then send request
+sml(1 0 300)
+sml(1 1 "00000000000000000000")
+sml(1 1 "00000000000000000000")
+sml(1 1 "00000000000000000000")
+sml(1 1 "00000000000000000000")
+sml(1 1 "2F23210D0A")
+; inkl. Monatsdaten
+; 2F 23 21 0D0A
+; /  #  !  crlf
+; kurzes Telegram (kein akt. Verbrauch)
+; 2F 3F 21 0D0A
+; /  ?  !  crlf
+; Der UH50 schickt anschließend mit 300 Baud sein Acknowledge zurück
+; z.B.: "/LUGCUH50" Das C in der Mitte codiert die Baudrate:
+; A 600 - B 1200 - C 2400 - D 4800 - E 9600 - F 19200
+; Keine Ahnung wie diese Acknowledge in Tasmota auslesbar ist. Ganz selten
+; taucht der Acknowledgestring im Debuglog (sensor53 d1) auf.
+; Im Zweifel einfach alle Baudraten ausprobieren. Ich habe UH50 mit 
+; 2400 und 19200 Baud.
+case 20
+print set baudrate to 19200
+sml(1 0 19200)
+;Restart sequence after 300*100ms=30s
+case 300
+print restart sequence
+cntr=0  
+ends 
+cntr+=1
+>M 1
++1,3,o,0,300,UH50,1
+1,)6.8.6(@1,Wärmebezug gesamt,kWh,6.8.6,0
+1,)6.26.6(@1,Wasserumsatz gesamt,m3,6.26.6,2
+1,6.4(@1,Heizleistung,kW,6.4,1
+1,)6.27(@1,Wasserdurchfluss,m3/h,6.27,3
+1,)6.29(@1,Temp. Rücklauf,°C,6.29,1
+1,)6.28(@1,Temp. Vorlauf,°C,6.28,1
+1,)0.0(@1,Zählernummer,,0.0,0 
+1,)9.36(@#),UH50 RTC,,9.36,0
+#
